@@ -1,0 +1,11 @@
+Food	
+Gifts	
+Health/medical	
+Home	
+Transportation	
+Personal	
+Pets	
+Utilities	
+Travel	
+Debt	
+Other	
