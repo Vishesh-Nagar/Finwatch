@@ -1,12 +1,15 @@
 services:
-  - type: worker
+  - type: web
     name: finwatch-telegram-bot
     env: docker
     dockerfilePath: ./Dockerfile
     region: oregon
     plan: free
     autoDeploy: true
+    healthCheckPath: /
     envVars:
+      - key: PORT
+        value: 10000
       - key: TELEGRAM_BOT_TOKEN
         sync: false
       - key: ALLOWED_TELEGRAM_USER_IDS
@@ -16,6 +19,6 @@ services:
       - key: SPREADSHEET_ID
         sync: false
       - key: SHEET_NAME
-        value: Transactions
+        value: Budget
       - key: GOOGLE_SERVICE_ACCOUNT_JSON
         sync: false

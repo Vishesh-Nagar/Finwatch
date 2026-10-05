@@ -22,5 +22,8 @@ COPY bot/ ./bot/
 RUN useradd -m appuser && chown -R appuser /app
 USER appuser
 
+# Expose port for health check
+EXPOSE 10000
+
 # Run bot in polling mode
 CMD ["python", "-m", "bot.main"]

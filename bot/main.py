@@ -299,6 +299,39 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         logger.error(f"Error handling follow-up text: {e}")
         await update.message.reply_text(f"❌ Failed to update transaction: {str(e)}")
 
+import asyncio
+import os
+
+async def start_health_server(port: int) -> None:
+    """Lightweight HTTP server on $PORT for Render health checks."""
+    async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
+        try:
+            await reader.readline()
+            response = (
+                b"HTTP/1.1 200 OK\r\n"
+                b"Content-Type: text/plain\r\n"
+                b"Content-Length: 15\r\n\r\n"
+                b"Finwatch Active"
+            )
+            writer.write(response)
+            await writer.drain()
+            writer.close()
+            await writer.wait_closed()
+        except Exception as e:
+            logger.debug(f"Health check error: {e}")
+
+    server = await asyncio.start_server(handle_client, "0.0.0.0", port)
+    logger.info(f"Health check HTTP server active on 0.0.0.0:{port}")
+    async with server:
+        await server.serve_forever()
+
+async def post_init(application: Application) -> None:
+    """Spawns HTTP health server if PORT environment variable is provided."""
+    port_env = os.getenv("PORT")
+    if port_env and port_env.strip().isdigit():
+        port = int(port_env.strip())
+        asyncio.create_task(start_health_server(port))
+
 def main() -> None:
     token = Config.TELEGRAM_BOT_TOKEN
     if not token:
@@ -308,7 +341,7 @@ def main() -> None:
         return
 
     logger.info("Starting Finwatch Telegram Bot...")
-    app = Application.builder().token(token).build()
+    app = Application.builder().token(token).post_init(post_init).build()
 
     # Commands
     app.add_handler(CommandHandler("start", cmd_start))
